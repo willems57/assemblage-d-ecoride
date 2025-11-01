@@ -1,0 +1,16 @@
+name: frontend
+type: "nodejs:18"
+
+build:
+    flavor: "none"
+
+web:
+    locations:
+        "/":
+            root: "build"
+            index: ["index.html"]
+
+hooks:
+    build: |
+        npm install
+        npm run build
