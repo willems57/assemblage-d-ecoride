@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Madurai:wght@300;400;500;600;700&family=Irish+Grover&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
+    
+    <title>{% block title %}Eco Ride{% endblock %}</title>
+    
+    {% block stylesheets %}{% endblock %}
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{ path('app_home') }}">Eco Ride</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{{ path('app_trajets') }}" data-show="">Accès aux covoiturages</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_contact') }}">Contact</a>
+                        </li>
+                        <li class="nav-item dropdown" data-show="connected">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Compte
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ path('app_utilisateurs') }}" data-show="ROLE_USER">Utilisateur</a></li>
+                                <li><a class="dropdown-item" href="{{ path('app_employers') }}" data-show="ROLE_EMPLOYER">Employers</a></li>
+                                <li><a class="dropdown-item" href="{{ path('app_administrateur') }}" data-show="ROLE_ADMIN">Admin</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_avis') }}" data-show="connected">Avis</a>
+                        </li>
+                        <li class="nav-item" data-show="disconnected">
+                            <a class="nav-link active" aria-current="page" href="{{ path('app_signin') }}">Connexion</a>
+                        </li>
+                        <li class="nav-item" data-show="connected">
+                            <button class="nav-link" id="signout-btn">Deconnexion</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-page">
+     {% block body %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-primary text-center footer bg-primary">
+        <div class="row">
+            <div class="col-12 col-lg-4">
+                <p>contacte: <br/>
+                    ecoride@ecoeco.fr <br/>
+                    02 45 43 5900 <br/>
+                </p>
+            </div>
+            <div class="col-6 col-lg-4">
+                <p>Siege Eco Ride <br/>
+                    25 rue riede <br/>
+                    35380 Paimpont <br/>
+                </p>
+            </div>
+            <div class="col-6 col-lg-4">
+                <a class="nav-link" href="{{ path('app_legale') }}">Mention legale</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->{% block javascripts %}
+    <script src="{{ asset('assets/js/jquery.min.js') }}"></script>
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
+   <!-- <script type="module" src="{{ asset('assets/js/routes/router.js') }}"></script> -->
+    <script>
+       // Gestion de l'affichage basé sur les rôles
+   const RoleCookieName = ("role");
+const tokenCookieName = "accesstoken";
+const signoutBtn = document.getElementById("signout-btn");
+/*const myElement = document.getElementById('myElement');
+const roleToShow = myElement.dataset.show; */
+
+
+
+signoutBtn.addEventListener("click", signout); 
+
+setToken();
+showAndHideElementsForRoles();  
+
+function getRole(){
+    return getCookie(RoleCookieName);
+}
+
+function signout(){
+    eraseCookie(tokenCookieName);
+    eraseCookie(RoleCookieName);
+    window.location.reload();
+}
+
+function setToken(token){
+    setCookie(tokenCookieName, token, 7);
+}
+
+function getToken(){
+    return getCookie(tokenCookieName);
+}
+
+function setCookie(name,value,days) {
+        let expires = "";
+        if (days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (days*24*60*60*1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+    
+    function getCookie(name) {
+        let nameEQ = name + "=";
+        let ca = document.cookie.split(';');
+        for(let i=0;i < ca.length;i++) {
+            let c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+    
+    function eraseCookie(name) {   
+        document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+
+    function isConnected(){
+        if(getToken() == null || getToken == undefined){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+
+
+    function showAndHideElementsForRoles() {
+        const userConnected = isConnected();  // Vérifie si l'utilisateur est connecté
+        const role = getRole();  // Récupère le rôle de l'utilisateur
+    
+        // Sélectionne tous les éléments ayant un attribut data-show
+        const allElementsToEdit = document.querySelectorAll('[data-show]');
+    
+        allElementsToEdit.forEach(element => {
+            switch (element.dataset.show) {
+                case 'disconnected':
+                    // Si l'utilisateur est connecté, cacher cet élément
+                    if (userConnected) {
+                        element.classList.add("d-none");
+                    }
+                    break;
+                case 'connected':
+                    // Si l'utilisateur n'est pas connecté, cacher cet élément
+                    if (!userConnected) {
+                        element.classList.add("d-none");
+                    }
+                    break;
+                case 'ROLE_ADMIN':
+                    // Si l'utilisateur n'est pas connecté ou n'a pas le rôle admin, cacher cet élément
+                    if (!userConnected || role !== "ROLE_ADMIN") {
+                        element.classList.add("d-none");
+                    }
+                    break;
+                case 'ROLE_EMPLOYER':
+                    // Si l'utilisateur n'est pas connecté ou n'a pas le rôle employer, cacher cet élément
+                    if (!userConnected || role !== "ROLE_EMPLOYER") {
+                        element.classList.add("d-none");
+                    }
+                    break;
+                case 'ROLE_USER':
+                    // Si l'utilisateur n'est pas connecté ou n'a pas le rôle vétérinaire, cacher cet élément
+                    if (!userConnected || role !== "ROLE_USER") {
+                        element.classList.add("d-none");
+                    }
+                    break;
+            }
+        });
+    }
+    </script>
+    
+    {% endblock %}
+</body>
+ 
+</html>
